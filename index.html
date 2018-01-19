@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Simple Contract</title>
+
+    <link rel="stylesheet" href="main.css">
+
+    <script src="./node_modules/web3/dist/web3.min.js"></script>
+</head>
+<body>
+
+<div class="container">
+    <h1>Simple Contract</h1>
+
+    <h2 id="details"></h2>
+
+    <h4 id="loader">loading...</h4>
+
+    <label for="name" class="col-lg-2 control-label">Name</label>
+    <input type="text" id="name">
+
+    <label for="age" class="col-lg-2 control-label">Age</label>
+    <input type="text" id="age">
+
+    <button id="button">Update Details</button>
+</div>
+
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+
+<script>
+    if (typeof web3 !== 'undefined') {
+        web3 = new Web3(web3.currentProvider)
+    }
+    else {
+        web3 = new Web3(new Web3.providers.HttpProvider('http://localhost:8545'));
+    }
+
+    web3.eth.defaultAccount=web3.eth.accounts[0];
+
+    let SimpleContract = web3.eth.contract([
+        {
+            "constant": true,
+            "inputs": [],
+            "name": "getDetails",
+            "outputs": [
+                {
+                    "name": "",
+                    "type": "string"
+                },
+                {
+                    "name": "",
+                    "type": "uint256"
+                }
+            ],
+            "payable": false,
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "anonymous": false,
+            "inputs": [
+                {
+                    "indexed": false,
+                    "name": "name",
+                    "type": "string"
+                },
+                {
+                    "indexed": false,
+                    "name": "age",
+                    "type": "uint256"
+                }
+            ],
+            "name": "Details",
+            "type": "event"
+        },
+        {
+            "constant": false,
+            "inputs": [
+                {
+                    "name": "_fName",
+                    "type": "string"
+                },
+                {
+                    "name": "_age",
+                    "type": "uint256"
+                }
+            ],
+            "name": "setDetails",
+            "outputs": [],
+            "payable": false,
+            "stateMutability": "nonpayable",
+            "type": "function"
+        },
+        {
+            "inputs": [],
+            "payable": false,
+            "stateMutability": "nonpayable",
+            "type": "constructor"
+        }
+    ]);//get contract detail
+
+    let contract = SimpleContract.at('0x7bbcb4c99a99147150fd6adb0fc256152079a8a5');//get address detail
+    console.log(contract);
+
+    let userDetails = contract.Details();
+
+    userDetails.watch(function (error, result) {
+        if(!error){
+            $('#loader').hide();
+            $('#details').html(result.args.name+' is '+result.args.age+' years old');
+        }
+        else{
+            $('#loader').hide();
+            console.log('error');
+        }
+    });
+
+    $('#button').click(function () {
+        $('#loader').show();
+        let name = $('#name').val();
+        let age = $('#age').val();
+        contract.setDetails(name, age, (err, res)=>{
+            if(err){
+                $('#loader').hide();
+                console.log('error');
+            }
+        });
+    });
+
+</script>
+
+</body>
+</html>
